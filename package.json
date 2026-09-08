@@ -1,0 +1,35 @@
+{
+  "name": "@optersoft/astro",
+  "version": "0.0.0",
+  "description": "The Optersoft chrome for Astro sites: layout, header, footer, the three-way theme, the brand stylesheet and fonts",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": false,
+  "repository": "github:optersoft/astro",
+  "exports": {
+    "./integration": "./src/integration.ts",
+    "./*": "./src/*"
+  },
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "@tailwindcss/vite": "^4",
+    "astro": "^7",
+    "tailwindcss": "^4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0"
+  },
+  "scripts": {
+    "check": "astro check --root example",
+    "build": "astro build --root example"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

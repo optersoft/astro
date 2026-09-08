@@ -1,0 +1,30 @@
+---
+import Layout from "../../../src/Layout.astro";
+import Shell from "../../../src/Shell.astro";
+import PageHeader from "../../../src/PageHeader.astro";
+import NotFound from "../../../src/NotFound.astro";
+
+const header = {
+  brand: { href: "/", name: "opter", suffix: "soft" },
+  links: [
+    { href: "#", label: "Services" },
+    { href: "#", label: "Technology", current: true },
+    { href: "#", label: "About" },
+  ],
+  langs: [
+    { code: "en", label: "EN", name: "English", href: "/", current: true },
+    { code: "es", label: "ES", name: "Español", href: "/es" },
+  ],
+  collapse: "lg" as const,
+};
+---
+
+<Layout title="Example — Optersoft chrome" description="Every component, once." canonical="https://example.optersoft.com/">
+  <Shell header={header}>
+    <a slot="actions" href="#" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold dark:border-gray-600">Sign in</a>
+    <a slot="menu" href="#" class="block py-2">Sign in</a>
+    <PageHeader label="Example" heading="The chrome, rendered." intro="A page header with a backdrop, then a 404 body." glow={true} />
+    <NotFound heading="Not found" body="This is the 404 body." home={{ href: "/", label: "Home" }} />
+    <a slot="end" href="#" class="text-slate-400">Staff</a>
+  </Shell>
+</Layout>

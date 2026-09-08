@@ -1,0 +1,20 @@
+{
+  "// ": "Self-contained on purpose — no `extends`. Consumers build this package through a symlink (a `file:../astro` dependency), and esbuild reads the nearest tsconfig from the file's REAL path, where `astro/tsconfigs/strict` does not resolve. These are that preset's options, inline.",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

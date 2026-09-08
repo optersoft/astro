@@ -1,0 +1,178 @@
+---
+// The site header — the port of `dioxus_chrome`'s `SkipLink` + `Navbar` +
+// `LangSwitcher` + `ThemeToggle`, as one Astro component every Optersoft site
+// renders with its own slots filled in: a brand, a row of links, an optional
+// locale switcher, and whatever goes in `actions` (a sign-in button) and
+// `menu` (the same button for the hamburger). The ids, classes and the
+// `name="dx-nav-popover"` accordion are styles/theme.css's contract.
+//
+// Native `<details>` for both dropdowns — no script on a first paint — and one
+// script for the hamburger. Everything else is markup.
+//
+// ⚠ `collapse` is a MEASUREMENT, not a taste. optersoft.com carries a brand,
+// six links, three locale pills, a theme toggle and a sign-in button: inline
+// that needs ~900px, and `md` (768) put the inline row on 130px too early —
+// the label wrapped, the bar grew from 73 to 107px, the wordmark was clipped,
+// and below 768 the overflow pushed the hamburger off-screen and widened the
+// layout viewport so every page was cut off down the right-hand edge. It
+// passes `lg`. A product site with four links and no switcher fits `md`. One
+// breakpoint governs three places that MUST agree — the actions cluster's
+// order, the hamburger's hide, and the menu row's show — which is why it is
+// one prop and a table of literal class strings (Tailwind generates only
+// classes it can read in the source).
+import type { NavLink, LangOption } from "./links.ts";
+import { LABELS, type Labels } from "./labels.ts";
+import ThemeToggle from "./ThemeToggle.astro";
+import LangSwitcher from "./LangSwitcher.astro";
+
+export interface Brand {
+  href: string;
+  /** The wordmark; `suffix` is rendered light after it (opter·soft). */
+  name: string;
+  suffix?: string;
+  /** An image URL, rendered 32×32 with rounded corners before the wordmark. */
+  logo?: string;
+  alt?: string;
+}
+
+interface Props {
+  brand: Brand;
+  links?: NavLink[];
+  langs?: LangOption[];
+  labels?: Partial<Labels>;
+  collapse?: "md" | "lg";
+  /** The container's max width class; match the pages under it. */
+  width?: string;
+}
+const { brand, links = [], langs, labels: partial = {}, collapse = "md", width = "max-w-6xl" } = Astro.props;
+const labels: Labels = { ...LABELS, ...partial };
+
+const BP = {
+  md: {
+    actions: "flex items-center md:order-2",
+    actionsSlot: "hidden md:flex md:ml-2",
+    burger: "md:hidden",
+    menu: "hidden items-center justify-between w-full md:!flex md:w-auto md:order-1",
+    list: "flex flex-col md:flex-row md:items-center gap-2 md:gap-7 p-4 md:p-0 mt-4 md:mt-0 text-sm font-medium text-slate-600 dark:text-slate-300",
+    link: "block py-2 md:py-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors",
+    menuSlot: "md:hidden mt-2 md:mt-0",
+  },
+  lg: {
+    actions: "flex items-center lg:order-2",
+    actionsSlot: "hidden lg:flex lg:ml-2",
+    burger: "lg:hidden",
+    menu: "hidden items-center justify-between w-full lg:!flex lg:w-auto lg:order-1",
+    list: "flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-7 p-4 lg:p-0 mt-4 lg:mt-0 text-sm font-medium text-slate-600 dark:text-slate-300",
+    link: "block py-2 lg:py-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors",
+    menuSlot: "lg:hidden mt-2 lg:mt-0",
+  },
+}[collapse];
+
+// A forwarded slot exists even when nothing was put in it, so the wrappers
+// are keyed on rendered content rather than on `Astro.slots.has`.
+const slot = async (name: string) => (Astro.slots.has(name) ? (await Astro.slots.render(name)).trim() : "");
+const custom = await slot("brand");
+const actions = await slot("actions");
+const menu = await slot("menu");
+---
+
+<!-- The "skip to content" link — WCAG 2.4.1 Bypass Blocks, level A. Rendered
+     ABOVE the navbar, as the first focusable node in the document: "first" is
+     the whole specification. `sr-only focus:not-sr-only`, never `hidden` — a
+     `display: none` element is not focusable. -->
+<a
+  href="#main"
+  class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:rounded-lg focus:bg-white dark:focus:bg-gray-800 focus:px-4 focus:py-2 focus:text-gray-900 dark:focus:text-white focus:shadow-lg focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600"
+>
+  {labels.skip}
+</a>
+
+<nav class="sticky top-0 z-30 w-full border-b border-slate-200/70 bg-white/85 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/85">
+  <!-- ⚠ `flex-wrap` is LOAD-BEARING. `#navbar-menu` is `w-full` by design:
+       when the hamburger opens, the menu has to fall to a second row UNDER the
+       bar. In a nowrap row it cannot — it stays on line one, squeezes the brand
+       and the actions into nothing and pushes itself past the right edge: a
+       menu that opens off-screen. -->
+  <div class:list={["container mx-auto flex flex-wrap items-center justify-between gap-4 px-5 sm:px-6 py-4", width]}>
+    <!-- `min-w-0` so the brand is what shrinks last, not first: without it a
+         flex item refuses to go below its content width, and an over-wide
+         action wins the fight by crushing the wordmark. -->
+    <div class="flex min-w-0 items-center gap-3 rtl:space-x-reverse">
+      {
+        custom ? (
+          <Fragment set:html={custom} />
+        ) : (
+          <a href={brand.href} class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+            {brand.logo && <img src={brand.logo} alt={brand.alt ?? ""} width="32" height="32" class="h-8 w-8 rounded-lg" />}
+            <span>
+              {brand.name}
+              {brand.suffix && <span class="font-light text-slate-400 dark:text-slate-500">{brand.suffix}</span>}
+            </span>
+          </a>
+        )
+      }
+    </div>
+
+    <div class={BP.actions}>
+      {langs && langs.length > 0 && <LangSwitcher langs={langs} label={labels.language} />}
+
+      <ThemeToggle labels={labels} />
+
+      <!-- `actions` is the slot the crate documents for a sign-in / account
+           control — and the slot it never hides. So anything wide goes in here
+           hidden below the breakpoint, and the same thing again in `menu`, where
+           the hamburger shows it: a phone reader looks for it in the menu. -->
+      {actions && <div class={BP.actionsSlot} set:html={actions} />}
+
+      <button
+        type="button"
+        aria-label={labels.menu}
+        aria-controls="navbar-menu"
+        aria-expanded="false"
+        class:list={[
+          BP.burger,
+          "inline-flex shrink-0 items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 ml-2 cursor-pointer",
+        ]}
+      >
+        <span>
+          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"></path>
+          </svg>
+        </span>
+      </button>
+    </div>
+
+    <!-- `!flex` always shows the row at and above the breakpoint; below it
+         the hamburger toggles `hidden`. -->
+    <div id="navbar-menu" class={BP.menu}>
+      <ul class={BP.list}>
+        {
+          links.map((link) => (
+            <li>
+              {/* `py-2` on a phone, not `py-1`: this is the only way to reach
+                  these pages on a small screen, and a 21px-tall tap target
+                  misses WCAG 2.2 SC 2.5.8's 24×24 floor. */}
+              <a href={link.href} aria-current={link.current ? "page" : undefined} class={BP.link}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+        {menu && <li class={BP.menuSlot} set:html={menu} />}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // The hamburger: two writes, `hidden` on `#navbar-menu` and `aria-expanded`.
+  // Below the breakpoint only — at and above it `!flex` wins regardless.
+  const button = document.querySelector<HTMLButtonElement>('button[aria-controls="navbar-menu"]');
+  const menu = document.getElementById("navbar-menu");
+  if (button && menu) {
+    button.addEventListener("click", () => {
+      const open = menu.classList.toggle("hidden") === false;
+      button.setAttribute("aria-expanded", String(open));
+    });
+  }
+</script>

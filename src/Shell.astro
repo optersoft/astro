@@ -1,0 +1,29 @@
+---
+// The frame every page shares: sticky header, growing main, footer — the port
+// of `dioxus_chrome`'s `Shell`. `header` and `footer` are the two components'
+// props; the header's `brand`/`actions`/`menu` slots and the footer's `end`
+// slot are forwarded under the same names.
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+import type { ComponentProps } from "astro/types";
+
+interface Props {
+  header: ComponentProps<typeof Header>;
+  footer?: ComponentProps<typeof Footer>;
+}
+const { header, footer = {} } = Astro.props;
+---
+
+<div class="flex flex-col min-h-full">
+  <Header {...header}>
+    <slot name="brand" slot="brand" />
+    <slot name="actions" slot="actions" />
+    <slot name="menu" slot="menu" />
+  </Header>
+  <main id="main" class="flex-grow">
+    <slot />
+  </main>
+  <Footer {...footer}>
+    <slot name="end" slot="end" />
+  </Footer>
+</div>

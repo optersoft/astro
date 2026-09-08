@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+example/dist/
+example/.astro/
+.DS_Store
+.make/

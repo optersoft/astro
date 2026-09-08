@@ -1,0 +1,107 @@
+---
+// The footer: the company. Every Optersoft site ends with the same block —
+// "Optersoft, S.L.", the social row, two columns of links into optersoft.com,
+// the copyright line and the registry ids — which is what makes hive, make,
+// frontage and optersoft.com read as one company at the bottom of the page
+// even when the top of it is the product's own. optersoft.com passes its
+// localised strings and columns; everything else takes the defaults.
+import { OPTERSOFT, OPTERSOFT_COLUMNS, SOCIALS, type Column } from "./links.ts";
+import logo from "./assets/optersoft.png?url";
+
+interface Props {
+  /** The company name on the wordmark line. */
+  name?: string;
+  tagline?: string;
+  office?: string;
+  /** "All rights reserved", in the page's language. */
+  rights?: string;
+  /** The registry ids, rendered in the mono face. */
+  legal?: string;
+  /** The Optersoft mark; optersoft.com passes its literal icon path. */
+  logo?: string;
+  /** Where the wordmark links: optersoft.com, or the site's own home. */
+  home?: string;
+  columns?: Column[];
+  socials?: boolean;
+  /** The copyright years; a site stamps its own range at build time. */
+  years?: string;
+  width?: string;
+}
+const {
+  name = "Optersoft, S.L.",
+  tagline = "Software consultancy and training",
+  office = "Registered office: Barcelona, Spain",
+  rights = "All rights reserved",
+  legal = "ES B64542335 · D-U-N-S 770940638",
+  logo: mark = logo,
+  home = `${OPTERSOFT}/`,
+  columns = OPTERSOFT_COLUMNS,
+  socials = true,
+  years = String(new Date().getFullYear()),
+  width = "max-w-6xl",
+} = Astro.props;
+const LINK = "text-slate-600 hover:text-blue-600 transition-colors dark:text-slate-400 dark:hover:text-blue-400";
+---
+
+<footer class="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+  <div class:list={["container mx-auto px-5 sm:px-6 py-12", width]}>
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="lg:col-span-2">
+        <a href={home} class="flex items-center gap-2.5">
+          <img src={mark} alt="Optersoft" width="28" height="28" class="h-7 w-7 rounded-lg" />
+          <p class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">{name}</p>
+        </a>
+        {tagline && <p class="mt-2 text-slate-500 dark:text-slate-400">{tagline}</p>}
+        {office && <p class="mt-1 text-slate-500 dark:text-slate-400">{office}</p>}
+        {
+          socials && (
+            <ul class="mt-4 flex items-center gap-2">
+              {SOCIALS.map(([label, href, icon]) => (
+                <li>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Optersoft on ${label}`}
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-blue-200 hover:text-blue-600 transition-colors dark:border-slate-700 dark:text-slate-400 dark:hover:border-blue-500/40 dark:hover:text-blue-400"
+                  >
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d={icon} />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+
+      {
+        columns.map((column, i) => (
+          <nav aria-labelledby={`footer-col-${i}`}>
+            <p id={`footer-col-${i}`} class="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              {column.heading}
+            </p>
+            <ul class="mt-4 flex flex-col gap-2.5">
+              {column.links.map((link) => (
+                <li>
+                  <a href={link.href} class={LINK}>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 flex flex-col gap-1 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:text-slate-400">
+      <p>© {years} {name} {rights}</p>
+      <div class="flex items-center gap-4">
+        {legal && <p class="font-mono font-light">{legal}</p>}
+        <slot name="end" />
+      </div>
+    </div>
+  </div>
+</footer>

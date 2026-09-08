@@ -1,0 +1,21 @@
+---
+// The faint grid + glow behind a page header or hero.
+interface Props {
+  glow?: boolean;
+}
+const { glow = false } = Astro.props;
+---
+
+<div
+  class="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] [background-size:44px_44px] dark:opacity-[0.08] dark:[background-image:linear-gradient(to_right,#64748b_1px,transparent_1px),linear-gradient(to_bottom,#64748b_1px,transparent_1px)]"
+  aria-hidden="true"
+>
+</div>
+{
+  glow && (
+    <div
+      class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[42rem] max-w-full rounded-full bg-gradient-to-r from-blue-400/30 to-indigo-400/30 blur-3xl"
+      aria-hidden="true"
+    />
+  )
+}

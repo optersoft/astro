@@ -1,0 +1,116 @@
+---
+// The document: `<html>`, the `<head>` every page needs, the pre-paint theme
+// script, and `<body>`. The port of the Dioxus build's `main.rs` + the common
+// half of its `ui/head.rs`; what is site-specific — hreflang, JSON-LD, a
+// licence link — goes in the `head` slot.
+//
+// The root stylesheet is NOT imported here: the integration injects the site's
+// own `src/styles/global.css` into every page (see integration.ts for why it
+// has to be the site's file).
+import { BAR, THEME_APPLY_SCRIPT } from "./theme.ts";
+import ico from "./assets/favicon.ico?url";
+import png32 from "./assets/favicon-32x32.png?url";
+import png16 from "./assets/favicon-16x16.png?url";
+import apple from "./assets/apple-touch-icon.png?url";
+
+export interface Icon {
+  href: string;
+  rel?: "icon" | "apple-touch-icon";
+  type?: string;
+  sizes?: string;
+}
+
+/** The Optersoft mark, as hashed assets. A site with its own icons passes them
+ *  as literal `/public` paths instead — see the note on favicons below. */
+export const OPTERSOFT_ICONS: Icon[] = [
+  { href: ico, sizes: "any" },
+  { href: png32, type: "image/png", sizes: "32x32" },
+  { href: png16, type: "image/png", sizes: "16x16" },
+  { href: apple, rel: "apple-touch-icon", sizes: "180x180" },
+];
+
+interface Props {
+  lang?: string;
+  title: string;
+  description: string;
+  /** The absolute canonical URL; also `og:url`. Omit on a noindex page. */
+  canonical?: string;
+  /** Keep the page out of search results. */
+  noindex?: boolean;
+  /** `og:site_name`. */
+  site?: string;
+  /** `og:locale`, e.g. `en_US`. */
+  locale?: string;
+  /** The absolute URL of the share image; omitted, no image tags are emitted. */
+  image?: string;
+  icons?: Icon[];
+  /** A web app manifest path. */
+  manifest?: string;
+  class?: string;
+  bodyClass?: string;
+}
+const {
+  lang = "en",
+  title,
+  description,
+  canonical,
+  noindex = false,
+  site = "Optersoft",
+  locale,
+  image,
+  icons = OPTERSOFT_ICONS,
+  manifest,
+  class: cls = "h-full scroll-smooth",
+  bodyClass = "h-full",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} class={cls}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
+
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:site_name" content={site} />
+    {locale && <meta property="og:locale" content={locale} />}
+    {image && <meta property="og:image" content={image} />}
+
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
+
+    <slot name="head" />
+
+    <!-- Favicons. A site whose icon Google should keep serves them from
+         `/public` at LITERAL paths and passes those here: Google re-crawls a
+         favicon on its own slow schedule and treats a moved one as new, so a
+         hashed favicon can silently never appear in search results. The
+         default set is hashed and fine for a product site. -->
+    {icons.map((i) => <link rel={i.rel ?? "icon"} href={i.href} type={i.type} sizes={i.sizes} />)}
+    {manifest && <link rel="manifest" href={manifest} />}
+
+    <!-- The mobile browser chrome's colour. ONE meta, no `media` query: the
+         theme script below (and the toggle) rewrites its `content` to the
+         active theme's bar colour, and a media-gated pair would leave the
+         wrong one live. The light value is the pre-script default. -->
+    <meta name="theme-color" content={BAR.light} />
+
+    <!-- The pre-paint theme script, inline so it runs BEFORE first paint. -->
+    <script is:inline set:html={THEME_APPLY_SCRIPT} />
+  </head>
+
+  <body class={bodyClass}>
+    <slot />
+  </body>
+</html>

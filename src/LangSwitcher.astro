@@ -1,0 +1,74 @@
+---
+// The locale switcher — the port of `dioxus_chrome::LangSwitcher`. Two
+// renderings of the same rows: a `<details>` dropdown below `sm`, exactly the
+// control the theme toggle is (three pills are 111px, the toggle is 40px, and
+// on a 320px bar that difference is the whole brand wordmark), and the pill
+// strip from `sm` up, where there is room for it.
+//
+// Every row carries `hreflang`, and the current locale is a link to itself
+// with `aria-current`, not a dead `<span>`: self-referencing alternates are
+// what make a locale set coherent to a crawler.
+import type { LangOption } from "./links.ts";
+
+interface Props {
+  langs: LangOption[];
+  label: string;
+}
+const { langs, label } = Astro.props;
+// The button face below `sm`: the current code, in the same 20×20 box the
+// theme toggle gives its glyph, so the two buttons are the same size to the
+// pixel. A globe would be the closer visual match and the worse control — a
+// switcher has to say WHICH language you are reading.
+const face = langs.find((l) => l.current)?.label ?? langs[0]?.label ?? "";
+---
+
+<details name="dx-nav-popover" class="relative shrink-0 sm:hidden">
+  <summary
+    class="list-none inline-flex items-center cursor-pointer select-none text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5"
+    aria-label={label}
+    title={label}
+  >
+    <span class="inline-flex h-5 w-5 items-center justify-center text-xs font-semibold">{face}</span>
+  </summary>
+  <div class="absolute right-0 mt-1 w-36 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 z-30">
+    {
+      langs.map((item) => (
+        <a
+          href={item.href}
+          hreflang={item.code}
+          aria-current={item.current ? "true" : undefined}
+          class={
+            item.current
+              ? "flex w-full items-center px-3 py-2 text-sm no-underline font-semibold text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              : "flex w-full items-center px-3 py-2 text-sm no-underline text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }
+        >
+          {item.name}
+        </a>
+      ))
+    }
+  </div>
+</details>
+
+<div
+  class="hidden sm:flex shrink-0 items-center rounded-lg border border-gray-200 p-0.5 text-xs font-semibold dark:border-gray-600"
+  role="group"
+  aria-label={label}
+>
+  {
+    langs.map((item) => (
+      <a
+        href={item.href}
+        hreflang={item.code}
+        aria-current={item.current ? "true" : undefined}
+        class={
+          item.current
+            ? "px-2.5 py-1 rounded-md transition-colors bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+            : "px-2.5 py-1 rounded-md transition-colors text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        }
+      >
+        {item.label}
+      </a>
+    ))
+  }
+</div>

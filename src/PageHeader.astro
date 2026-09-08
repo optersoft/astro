@@ -1,0 +1,28 @@
+---
+// The eyebrow + h1 + intro block that opens a page. One component across the
+// sites so their page tops cannot drift apart. Extra content (a command, a
+// row of links) goes in the default slot, under the intro.
+import HeaderBackdrop from "./HeaderBackdrop.astro";
+
+interface Props {
+  label?: string;
+  heading: string;
+  intro?: string;
+  glow?: boolean;
+  /** The container's max width class. */
+  width?: string;
+}
+const { label, heading, intro, glow = false, width = "max-w-6xl" } = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-white border-b border-slate-200 dark:bg-slate-950 dark:border-slate-800">
+  <HeaderBackdrop glow={glow} />
+  <div class:list={["container relative mx-auto px-5 sm:px-6 py-16 sm:py-20", width]}>
+    {label && <p class="text-sm font-semibold uppercase tracking-widest text-blue-600 dark:text-blue-400">{label}</p>}
+    <h1 class:list={["text-4xl sm:text-5xl font-extrabold tracking-tight text-balance text-slate-900 dark:text-white", label && "mt-3"]}>
+      {heading}
+    </h1>
+    {intro && <p class="mt-5 max-w-2xl text-lg text-slate-600 leading-relaxed dark:text-slate-300">{intro}</p>}
+    <slot />
+  </div>
+</section>
