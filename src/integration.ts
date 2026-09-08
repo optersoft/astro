@@ -16,7 +16,7 @@
 //     @plugin "@tailwindcss/typography";      /* if the site uses `prose` */
 //     @import "@optersoft/astro/styles/chrome.css";
 import { createRequire } from "node:module";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
 
 export interface Options {
@@ -28,9 +28,15 @@ export default function optersoft(options: Options = {}): AstroIntegration {
   return {
     name: "@optersoft/astro",
     hooks: {
-      "astro:config:setup": async ({ config, updateConfig, injectScript }) => {
+      "astro:config:setup": ({ config, updateConfig, injectScript }) => {
+        // `require`, not `await import()`: this hook runs inside Vite's module runner, and a
+        // dynamic import whose specifier is computed keeps the runner open past the end of
+        // the hook — on a cold builder it is already closed by the time the module lands
+        // ("Vite module runner has been closed", Cloudflare Pages, 2026-09-08). Node has
+        // required ESM synchronously since 22.12, which this package already asks for.
         const require = createRequire(new URL("package.json", config.root));
-        const { default: tailwindcss } = await import(pathToFileURL(require.resolve("@tailwindcss/vite")).href);
+        const loaded = require("@tailwindcss/vite");
+        const tailwindcss = loaded.default ?? loaded;
         updateConfig({ vite: { plugins: [tailwindcss()] } });
         const css = fileURLToPath(new URL(options.css ?? "./src/styles/global.css", config.root));
         injectScript("page-ssr", `import ${JSON.stringify(css)};`);
